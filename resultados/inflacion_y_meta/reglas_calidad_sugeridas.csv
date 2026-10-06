@@ -1,0 +1,6 @@
+﻿campo,contexto,regla_sugerida
+"Periodo(MMM, AAAA)",Fecha mensual,Convertir a fecha válida; una observación por mes; marcar meses ausentes y duplicados.
+Inflación total anual,Tasa de inflación anual observada mensualmente,Numérica; admitir negativos (deflación). No aplicar límite máximo global ni eliminar extremos sin verificar contexto.
+Meta de inflación,Meta oficial disponible solo para parte del período,No imputar como cero ni rellenar antes de la primera observación. Comparar solo en fechas con ambas variables presentes.
+2026,Año parcial en el archivo (hasta agosto),No comparar su promedio anual con años completos sin etiquetarlo como parcial.
+Atípicos,Serie larga con cambios de régimen,Usar cuantiles/mediana junto al promedio; revisar IQR global y por década. Conservar episodios económicamente plausibles.

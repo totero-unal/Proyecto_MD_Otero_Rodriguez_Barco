@@ -13,9 +13,9 @@ import numpy as np
 import pandas as pd
 
 
-CARPETA = Path(__file__).resolve().parent
-ARCHIVO = CARPETA / "EAC_CIFRAS_2024_ANONIMIZADA_FINAL.csv"
-SALIDA = CARPETA / "diagnostico_EAC"
+RAIZ_PROYECTO = Path(__file__).resolve().parents[1]
+ARCHIVO = RAIZ_PROYECTO / "data" / "raw" / "EAC_CIFRAS_2024_ANONIMIZADA_FINAL.csv"
+SALIDA = RAIZ_PROYECTO / "reports" / "diagnostico_EAC"
 SEPARADOR = ";"
 CODIFICACION = "utf-8-sig"
 DOMINIO = "CORRELA_16"
@@ -132,7 +132,7 @@ def revisar_caracteres(datos):
 def main():
     if not ARCHIVO.exists():
         raise FileNotFoundError(f"No se encontró el CSV: {ARCHIVO}")
-    SALIDA.mkdir(exist_ok=True)
+    SALIDA.mkdir(parents=True, exist_ok=True)
 
     # El archivo usa punto y coma entre campos y coma decimal en los números.
     df = pd.read_csv(

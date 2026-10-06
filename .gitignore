@@ -1,0 +1,9 @@
+# Archivos temporales de Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Datos derivados; se regeneran a partir de data/raw
+data/processed/*
+!data/processed/.gitkeep
+reports/

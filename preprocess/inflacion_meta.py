@@ -13,9 +13,9 @@ import numpy as np
 import pandas as pd
 
 
-CARPETA = Path(__file__).resolve().parent
-ARCHIVO = CARPETA / "Inflación y meta.csv"
-SALIDA = CARPETA / "diagnostico_inflacion_meta"
+RAIZ_PROYECTO = Path(__file__).resolve().parents[1]
+ARCHIVO = RAIZ_PROYECTO / "data" / "raw" / "Inflación y meta.csv"
+SALIDA = RAIZ_PROYECTO / "reports" / "diagnostico_inflacion_meta"
 SEPARADOR = ";"
 DECIMAL = ","
 CODIFICACION = "utf-8-sig"
@@ -128,7 +128,7 @@ def revisar_caracteres(df):
 def main():
     if not ARCHIVO.exists():
         raise FileNotFoundError(f"No se encontró el archivo: {ARCHIVO}")
-    SALIDA.mkdir(exist_ok=True)
+    SALIDA.mkdir(parents=True, exist_ok=True)
 
     # La base es CSV separado por ; y usa coma como separador decimal.
     df = pd.read_csv(

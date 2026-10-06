@@ -1,0 +1,50 @@
+name: Ejecutar análisis de calidad y descriptivo
+
+on:
+  push:
+    branches: [main, "codex/**"]
+    paths-ignore:
+      - "resultados/**"
+      - "README.md"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  analizar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Instalar dependencias
+        run: python -m pip install -r requirements.txt
+      - name: Ejecutar todos los scripts de preprocesamiento
+        run: |
+          python preprocess/EAC.py
+          python preprocess/inflacion_meta.py
+          python preprocess/wide_to_long.py
+          python preprocess/banco_mundial.py
+      - name: Ejecutar los análisis descriptivos
+        run: |
+          python AD/analisis_descriptivo_eac.py
+          python AD/analisis_descriptivo_inflacion_meta.py
+          python AD/analisis_descriptivo_inflacion_global.py
+      - name: Preparar resultados agregados visibles en el repositorio
+        run: python publish_results.py
+      - name: Actualizar resultados publicados
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md resultados
+          if git diff --cached --quiet; then
+            echo "Los resultados publicados no cambiaron."
+          else
+            git commit -m "Actualizar resultados del análisis"
+            git push
+          fi

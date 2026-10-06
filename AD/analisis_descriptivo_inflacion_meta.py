@@ -19,9 +19,9 @@ try:
 except ImportError:
     HAS_PLOTS = False
 
-ROOT = Path(__file__).resolve().parent
-INPUT = ROOT / "Inflación y meta.csv"
-OUT = ROOT / "analisis_inflacion_meta"
+ROOT = Path(__file__).resolve().parents[1]
+INPUT = ROOT / "data" / "raw" / "Inflación y meta.csv"
+OUT = ROOT / "reports" / "analisis_inflacion_meta"
 DATE = "Periodo(MMM, AAAA)"
 META = "Meta de inflación"
 INFL = "Inflación total anual"
@@ -100,7 +100,7 @@ def iqr_reports(df, variable, period_group=None):
 
 
 def main():
-    OUT.mkdir(exist_ok=True)
+    OUT.mkdir(parents=True, exist_ok=True)
     df = pd.read_csv(
         INPUT, sep=";", decimal=",", encoding="utf-8-sig", low_memory=False
     )
