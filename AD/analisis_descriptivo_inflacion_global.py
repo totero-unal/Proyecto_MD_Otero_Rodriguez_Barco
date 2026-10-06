@@ -15,9 +15,9 @@ try:
 except ImportError:
     HAS_PLOTS = False
 
-ROOT = Path(__file__).resolve().parent
-INPUT = ROOT / "Inflation-data-largo-v2.csv"
-OUT = ROOT / "analisis_inflacion_global"
+ROOT = Path(__file__).resolve().parents[1]
+INPUT = ROOT / "data" / "processed" / "Inflation-data-largo-v2.csv"
+OUT = ROOT / "reports" / "analisis_inflacion_global"
 SERIES_KEYS = ["Hoja", "Country Code", "Indicator Type", "Series Name"]
 
 
@@ -49,7 +49,7 @@ def outliers_by_series(df):
 
 
 def main():
-    OUT.mkdir(exist_ok=True)
+    OUT.mkdir(parents=True, exist_ok=True)
     raw = pd.read_csv(INPUT, encoding="utf-8-sig", low_memory=False)
     if "Frecuencia" not in raw or "Valor" not in raw:
         raise ValueError("Se esperaba un CSV largo con columnas Frecuencia y Valor.")

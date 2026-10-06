@@ -1,0 +1,8 @@
+﻿campo,contexto,regla_sugerida
+V1,Clave de registro,Requerir no nulo y único; no usar como variable explicativa.
+CORRELA_16 / CORRE_9,Dominio de actividad categórico,Validar con catálogo DANE; no tratar como número continuo.
+IDOJ1,Código legal categórico,"Permitir solo códigos del diccionario {1..14, 99}; conservar faltantes explícitos."
+IDAIO,Año inicio actividad,Entero no posterior a 2024; revisar años anteriores a 1800; no confundir con año de encuesta.
+Variables financieras/personal,Montos en miles de pesos y conteos,Numérico finito; revisar negativos con definiciones; no imponer máximo global ni borrar outliers IQR automáticamente.
+Comparabilidad,Microdatos anonimizados,Evitar inferir evolución longitudinal a nivel V1; DANE advierte microagregación/perturbación.
+Distribución,Variables financieras sesgadas y con ceros,Describir con mediana/IQR y cuantiles; para modelar comparar estimadores robustos y log1p en columnas no negativas.

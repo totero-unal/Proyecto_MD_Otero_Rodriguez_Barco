@@ -1,0 +1,8 @@
+﻿tema,contexto,regla_sugerida
+Observación,"Una fila por país, indicador, tipo de serie y año",Validar clave Hoja + Country Code + Indicator Type + Series Name + Periodo como única.
+Notas,Filas con identificadores de serie vacíos pueden ser notas al pie,Separar notas de observaciones; no contarlas como valores faltantes del panel.
+Frecuencia,Anual para esta descripción,Filtrar Frecuencia='anual'; no mezclar con trimestral/mensual.
+Valor faltante,Cobertura desigual por país/serie/año,Mantener nulos y reportar cobertura por año; no imputar automáticamente.
+Valor,Inflación/tasas con colas extremas y posibles episodios de hiperinflación,Admitir valores negativos; no fijar tope universal ni eliminar extremos IQR sin validación histórica.
+Atípicos,"IQR dentro de cada país-serie, mínimo 8 datos",Usar candidatos para revisión; reportar mediana/IQR/MAD y hacer sensibilidad con/sin extremos.
+Año final,La fuente puede incluir estimaciones/proyecciones para algunos países en 2024,Revisar notas/fuente del registro y marcar el estado de 2024 antes de compararlo con históricos.

@@ -20,9 +20,9 @@ try:
 except ImportError:
     HAS_PLOTS = False
 
-ROOT = Path(__file__).resolve().parent
-INPUT = ROOT / "EAC_CIFRAS_2024_ANONIMIZADA_FINAL.csv"
-OUT = ROOT / "analisis_EAC_descriptivo"
+ROOT = Path(__file__).resolve().parents[1]
+INPUT = ROOT / "data" / "raw" / "EAC_CIFRAS_2024_ANONIMIZADA_FINAL.csv"
+OUT = ROOT / "reports" / "analisis_EAC_descriptivo"
 SEP, DECIMAL, ENCODING = ";", ",", "utf-8-sig"
 ID, DOMAIN, LEGAL, START_YEAR = "V1", "CORRELA_16", "IDOJ1", "IDAIO"
 LEGAL_CODES = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 99}
@@ -107,7 +107,7 @@ def write_rules(df, metrics):
 
 
 def main():
-    OUT.mkdir(exist_ok=True)
+    OUT.mkdir(parents=True, exist_ok=True)
     df = pd.read_csv(
         INPUT, sep=SEP, decimal=DECIMAL, encoding=ENCODING, low_memory=False
     )

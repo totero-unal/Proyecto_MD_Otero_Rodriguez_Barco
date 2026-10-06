@@ -1,14 +1,12 @@
+from pathlib import Path
+from collections import Counter
 import numpy as np
 import pandas as pd
-from pathlib import Path
-from IPython.display import display
-import seaborn as sns
-import matplotlib.pyplot as plt
-import unicodedata
-from collections import Counter
 
 
-csv_path = Path(r"C:\Users\otero\OneDrive\Desktop\DB\inflation-data-largo-v2.csv")
+ROOT = Path(__file__).resolve().parents[1]
+csv_path = ROOT / "data" / "processed" / "Inflation-data-largo-v2.csv"
+OUTPUT = ROOT / "reports" / "banco_mundial"
 df = pd.read_csv(csv_path, sep=",")
 # display(df.head())
 
@@ -90,8 +88,16 @@ for _, serie in df.groupby(claves, dropna=False):
 analisis = pd.concat(resultados, ignore_index=True) if resultados else pd.DataFrame()
 atipicos = analisis[analisis["Es atípico"]].copy()
 
-# print(f"Series evaluadas: {analisis.groupby(claves, dropna=False).ngroups:,}")
-# print(f"Posibles atípicos: {len(atipicos):,}")
+OUTPUT.mkdir(parents=True, exist_ok=True)
+resumen_series = (
+    analisis.groupby(claves, dropna=False)
+    .agg(observaciones=("Valor", "size"), candidatos_atipicos=("Es atípico", "sum"))
+    .reset_index()
+)
+resumen_series.to_csv(OUTPUT / "resumen_atipicos_por_serie.csv", index=False, encoding="utf-8-sig")
+atipicos.to_csv(OUTPUT / "candidatos_atipicos_por_serie.csv", index=False, encoding="utf-8-sig")
+print(f"Banco Mundial: {len(df):,} registros; {len(resumen_series):,} series; {len(atipicos):,} candidatos IQR.")
+print(f"Resultados detallados: {OUTPUT}")
 
 # Datos duplicados
 df_duplicates = df[df.duplicated(subset=["Valor"], keep=False)]

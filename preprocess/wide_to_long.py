@@ -14,8 +14,9 @@ from pathlib import Path
 import pandas as pd
 
 
-ARCHIVO = Path(r"C:\Users\otero\OneDrive\Desktop\DB\Inflation-data (1).xlsx")
-CARPETA_SALIDA = ARCHIVO.parent
+RAIZ_PROYECTO = Path(__file__).resolve().parents[1]
+ARCHIVO = RAIZ_PROYECTO / "data" / "raw" / "Inflation-data (1).xlsx"
+CARPETA_SALIDA = RAIZ_PROYECTO / "data" / "processed"
 SALIDA_SERIES = CARPETA_SALIDA / "Inflation-data-largo-v2.csv"
 SALIDA_AGREGADOS = CARPETA_SALIDA / "Inflation-data-aggregate-largo.csv"
 
@@ -168,6 +169,7 @@ def convertir_hoja(nombre, datos, agregados=False):
 def main():
     if not ARCHIVO.exists():
         raise FileNotFoundError(f"No se encontró el archivo fuente: {ARCHIVO}")
+    CARPETA_SALIDA.mkdir(parents=True, exist_ok=True)
 
     libro = pd.ExcelFile(ARCHIVO, engine="openpyxl")
     series_largas = []
