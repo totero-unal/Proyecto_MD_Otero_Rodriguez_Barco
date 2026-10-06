@@ -1,4 +1,4 @@
-_Última ejecución publicada (UTC): 2026-10-06 03:54_
+_Última ejecución publicada (UTC): 2026-10-06 04:00_
 
 Las cifras siguientes son resúmenes de la ejecución más reciente. Los candidatos IQR son señales para revisión, no errores confirmados.
 
