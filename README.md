@@ -6,7 +6,7 @@ Este repositorio contiene scripts de preprocesamiento y análisis descriptivo pa
 
 <!-- AUTO-RESULTS-START -->
 
-_Última ejecución publicada (UTC): 2026-10-06 03:37_
+_Última ejecución publicada (UTC): 2026-10-06 03:54_
 
 Las cifras siguientes son resúmenes de la ejecución más reciente. Los candidatos IQR son señales para revisión, no errores confirmados.
 

@@ -1,7 +1,7 @@
 ﻿variable,faltantes,porcentaje,tipo
 V1,0,0.0,int64
-CORRELA_16,0,0.0,str
-CORRE_9,0,0.0,str
+CORRELA_16,0,0.0,object
+CORRE_9,0,0.0,object
 IDOJ1,2,0.02,float64
 IDAIO,0,0.0,int64
 CIMREP,0,0.0,float64
