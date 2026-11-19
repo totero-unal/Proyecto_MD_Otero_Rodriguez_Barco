@@ -1,0 +1,3 @@
+﻿atributos,n_atributos,criterio,max_depth,min_samples_leaf,profundidad_real,hojas,balanced_accuracy_cv,balanced_accuracy_test,f1_macro_test
+Todos,60,entropy,8,30,8,153,0.38778228501406364,0.42230740414695045,0.35077948295369077
+Seleccionados,13,entropy,8,30,8,161,,0.4162932886470304,0.3308370826271388

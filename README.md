@@ -6,14 +6,14 @@ Este repositorio contiene scripts de preprocesamiento y análisis descriptivo pa
 
 <!-- AUTO-RESULTS-START -->
 
-_Última ejecución publicada (UTC): 2026-11-19 14:19_
+_Última ejecución publicada (UTC): 2026-11-19 14:35_
 
 Las cifras siguientes son resúmenes de la ejecución más reciente. Los candidatos IQR son señales para revisión, no errores confirmados.
 
 - **EAC 2024:** 10,238 registros; 2 faltantes reportados; 73,196 eventos candidatos IQR agregados por variable.
 - **Inflación y meta:** 854 valores observados de inflación; meta faltante en 426 observaciones (49.88%).
 - **Inflación global:** 53,845 observaciones anuales posibles entre grupos; 12,838 valores faltantes (23.84%); 3,197 candidatos IQR por serie temporal.
-- **Preparación EAC (`CORRE_9`):** 9 clases, 8,190 registros en train y 2,048 en test. Se comparan tres técnicas de remuestreo y se reportan las correlaciones con el objetivo.
+- **Preparación EAC (`CORRE_9`):** 9 clases, 8,190 registros en train y 2,048 en test. Se comparan tres técnicas de remuestreo y se seleccionan predictores por reducción de impureza en un árbol de decisión.
 
 Las tablas agregadas descargables están en las subcarpetas de `resultados/`. Los reportes de filas individuales se generan localmente durante el flujo y no se publican.
 
@@ -54,7 +54,7 @@ Las tablas agregadas descargables están en las subcarpetas de `resultados/`. Lo
 
 ![Preparación EAC: preparacion_eac_04_cambio_estructura.png](resultados/graficos/preparacion_eac_04_cambio_estructura.png)
 
-![Preparación EAC: preparacion_eac_05_correlaciones.png](resultados/graficos/preparacion_eac_05_correlaciones.png)
+![Preparación EAC: preparacion_eac_05_importancia_impureza.png](resultados/graficos/preparacion_eac_05_importancia_impureza.png)
 
 
 #### Tablas de resultados
@@ -89,7 +89,7 @@ Los reportes detallados se generan en `reports/`. El flujo automático solo publ
 
 - `preprocess/`: diagnósticos de calidad y conversión del libro del FMI a formato largo.
 - `AD/`: análisis descriptivo, tablas y gráficos.
-- `AD/preparacion_EAC.py`: distribución de CORRE_9, partición estratificada, comparación de remuestreos y correlaciones de los predictores. La opción `--guardar-muestras` exporta las particiones y las muestras para uso local en `reports/`.
+- `AD/preparacion_EAC.py`: distribución de CORRE_9, partición estratificada, comparación de remuestreos y selección de predictores por reducción de impureza en un árbol de decisión. La opción `--guardar-muestras` exporta las particiones y las muestras para uso local en `reports/`.
 - `data/raw/`: bases fuente necesarias para ejecutar los scripts.
 - `data/processed/`: bases derivadas que se regeneran y no se versionan.
 - `reports/`: salidas detalladas locales de los scripts; no se publican automáticamente.

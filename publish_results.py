@@ -45,7 +45,7 @@ TABLES = {
         for filename in [
             "distribucion_clases.csv", "clases_por_tecnica.csv", "comparacion_estructura.csv",
             "cambios_distribuciones.csv", "cambios_correlaciones.csv",
-            "ranking_correlaciones.csv", "spearman_por_clase.csv", "asociacion_idoj1.csv",
+            "busqueda_arbol_cv.csv", "evaluacion_arbol.csv", "importancia_impureza.csv",
         ]
     ],
 }
@@ -56,7 +56,7 @@ FIGURE_FILES = {
     "Inflación global": ["mediana_anual_por_indicador.png", "cobertura_paises_por_anio.png", "distribuciones_signed_log.png"],
     "Preparación EAC": [
         "01_clases_originales.png", "02_particion_estratificada.png", "03_clases_por_tecnica.png",
-        "04_cambio_estructura.png", "05_correlaciones.png",
+        "04_cambio_estructura.png", "05_importancia_impureza.png",
     ],
 }
 
@@ -124,7 +124,8 @@ def headline_stats():
         lines.append(
             f"- **Preparación EAC (`CORRE_9`):** {len(counts)} clases, "
             f"{counts['train'].sum():,} registros en train y {counts['test'].sum():,} en test. "
-            "Se comparan tres técnicas de remuestreo y se reportan las correlaciones con el objetivo."
+            "Se comparan tres técnicas de remuestreo y se seleccionan predictores "
+            "por reducción de impureza en un árbol de decisión."
         )
     return lines
 

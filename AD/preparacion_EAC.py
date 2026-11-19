@@ -1,4 +1,4 @@
-"""Diagnóstico de clases, partición, remuestreo y correlación para la EAC 2024."""
+"""Diagnóstico de clases, remuestreo y selección por impureza para la EAC 2024."""
 
 import argparse
 from pathlib import Path
@@ -10,10 +10,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from imblearn.over_sampling import RandomOverSampler, SMOTENC
+from imblearn.pipeline import Pipeline
 from imblearn.under_sampling import RandomUnderSampler
-from scipy.stats import chi2_contingency, ks_2samp
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from scipy.stats import ks_2samp
+from sklearn.compose import ColumnTransformer
+from sklearn.metrics import balanced_accuracy_score, f1_score
+from sklearn.model_selection import GridSearchCV, StratifiedKFold, train_test_split
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.tree import DecisionTreeClassifier
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -180,44 +184,109 @@ def compare_structure(samples, numeric, classes, out):
     return summary
 
 
-def correlate_predictors(train, numeric, classes, out):
-    # CORRE_9 es nominal. Cada indicador binario responde si la empresa pertenece a una clase.
-    # Spearman usa rangos promedio para los empates, importantes en variables con muchos ceros.
-    ranked = train[numeric].rank()
-    rho = pd.DataFrame({
-        label: ranked.corrwith(train[TARGET].eq(label).astype(int))
-        for label in classes
-    })
-    rho.index.name = "variable"
-    strongest = rho.abs().idxmax(axis=1)
-    ranking = pd.DataFrame({
-        "clase_mayor_asociacion": strongest,
-        "rho_firmado": [rho.at[feature, label] for feature, label in strongest.items()],
-        "rho_absoluto": rho.abs().max(axis=1),
-    }).sort_values("rho_absoluto", ascending=False)
-    ranking.to_csv(out / "ranking_correlaciones.csv", encoding="utf-8-sig")
-    rho.to_csv(out / "spearman_por_clase.csv", encoding="utf-8-sig")
+def tree_pipeline(features):
+    numeric = [feature for feature in features if feature != CATEGORY]
+    categorical = [feature for feature in features if feature == CATEGORY]
+    encoding = ColumnTransformer([
+        ("numericas", "passthrough", numeric),
+        ("categoricas", OneHotEncoder(handle_unknown="ignore", sparse_output=False), categorical),
+    ])
+    return Pipeline([
+        ("remuestreo", RandomOverSampler(random_state=SEED)),
+        ("codificar", encoding),
+        ("arbol", DecisionTreeClassifier(random_state=SEED)),
+    ])
 
-    # V de Cramér mide asociación entre dos variables nominales.
-    # Para esta medida se usan únicamente los IDOJ1 observados.
-    observed = train.loc[train[CATEGORY].ne("Sin dato")]
-    table = pd.crosstab(observed[CATEGORY], observed[TARGET])
-    chi2 = chi2_contingency(table, correction=False).statistic
-    cramer = np.sqrt(chi2 / (table.to_numpy().sum() * min(np.array(table.shape) - 1)))
-    pd.DataFrame([{"variable": CATEGORY, "v_cramer": cramer, "n": len(observed)}]).to_csv(
-        out / "asociacion_idoj1.csv", index=False, encoding="utf-8-sig"
+
+def select_predictors(train, test, out):
+    x_train, y_train = train.drop(columns=TARGET), train[TARGET]
+    x_test, y_test = test.drop(columns=TARGET), test[TARGET]
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEED)
+    search = GridSearchCV(
+        tree_pipeline(x_train.columns),
+        param_grid={
+            "arbol__criterion": ["gini", "entropy"],
+            "arbol__max_depth": [3, 5, 8, 12, 16, None],
+            "arbol__min_samples_leaf": [5, 15, 30, 60],
+        },
+        scoring={"balanced_accuracy": "balanced_accuracy", "f1_macro": "f1_macro"},
+        refit="balanced_accuracy",
+        cv=cv,
+        n_jobs=2,
+        error_score="raise",
+    )
+    search.fit(x_train, y_train)
+    cv_results = pd.DataFrame(search.cv_results_)
+    columns = [
+        "param_arbol__criterion", "param_arbol__max_depth", "param_arbol__min_samples_leaf",
+        "mean_test_balanced_accuracy", "std_test_balanced_accuracy", "mean_test_f1_macro",
+        "rank_test_balanced_accuracy",
+    ]
+    cv_results[columns].sort_values("rank_test_balanced_accuracy", kind="stable").to_csv(
+        out / "busqueda_arbol_cv.csv", index=False, encoding="utf-8-sig"
     )
 
-    top = ranking.head(10).iloc[::-1]
+    best = search.best_estimator_
+    encoder = best.named_steps["codificar"]
+    tree = best.named_steps["arbol"]
+    category_slice = encoder.output_indices_["categoricas"]
+    numeric_features = [feature for feature in x_train if feature != CATEGORY]
+    importance = pd.Series(tree.feature_importances_[encoder.output_indices_["numericas"]],
+                           index=numeric_features, name="importancia")
+    importance.loc[CATEGORY] = tree.feature_importances_[category_slice].sum()
+    ranking = importance.sort_values(ascending=False, kind="stable").to_frame()
+    ranking.index.name = "variable"
+    ranking["importancia_acumulada"] = ranking["importancia"].cumsum()
+    # Conservar el menor prefijo del ranking que cubre el 80 % de la importancia.
+    target_importance = 0.80
+    if ranking["importancia"].sum() == 0:
+        raise ValueError("El árbol elegido no realizó divisiones.")
+    ranking["seleccionada"] = (
+        ranking["importancia_acumulada"].shift(fill_value=0).lt(target_importance)
+        & ranking["importancia"].gt(0)
+    )
+    selected = ranking.index[ranking["seleccionada"]].tolist()
+    ranking.to_csv(out / "importancia_impureza.csv", encoding="utf-8-sig")
+
+    # El subconjunto se fija con train y ambos árboles se evalúan luego en el mismo test.
+    reduced = tree_pipeline(selected).set_params(**search.best_params_)
+    reduced.fit(x_train[selected], y_train)
+    predictions = [best.predict(x_test), reduced.predict(x_test[selected])]
+    models = [best, reduced]
+    metrics = pd.DataFrame([
+        {
+            "atributos": label,
+            "n_atributos": n,
+            "criterio": model.named_steps["arbol"].criterion,
+            "max_depth": model.named_steps["arbol"].max_depth,
+            "min_samples_leaf": model.named_steps["arbol"].min_samples_leaf,
+            "profundidad_real": model.named_steps["arbol"].get_depth(),
+            "hojas": model.named_steps["arbol"].get_n_leaves(),
+            "balanced_accuracy_cv": cv_score,
+            "balanced_accuracy_test": balanced_accuracy_score(y_test, pred),
+            "f1_macro_test": f1_score(y_test, pred, average="macro"),
+        }
+        for label, n, model, pred, cv_score in zip(
+            ["Todos", "Seleccionados"], [x_train.shape[1], len(selected)],
+            models, predictions, [search.best_score_, np.nan],
+        )
+    ])
+    metrics.to_csv(out / "evaluacion_arbol.csv", index=False, encoding="utf-8-sig")
+
+    top = ranking.head(max(10, len(selected))).iloc[::-1]
     fig, ax = plt.subplots(figsize=(9, 5.1))
-    bars = ax.barh(top.index, top["rho_absoluto"], color=COLORS[0])
-    ax.bar_label(bars, labels=[f"{v:+.3f} · {c}" for v, c in
-                               zip(top["rho_firmado"], top["clase_mayor_asociacion"])], padding=5)
-    ax.set(xlabel="Máximo |ρ de Spearman| entre las nueve clases",
-           title="Asociación de los predictores numéricos con CORRE_9",
-           xlim=(0, top["rho_absoluto"].max() * 1.6))
-    save_chart(fig, out, "05_correlaciones.png")
-    return ranking, cramer
+    values = top["importancia"] * 100
+    bars = ax.barh(top.index, values, color=np.where(top["seleccionada"], COLORS[0], "#a7b7c0"))
+    ax.bar_label(bars, fmt="%.1f %%", padding=5)
+    ax.set(xlabel="Porcentaje de la reducción ponderada de impureza",
+           title="Importancia de predictores en el árbol seleccionado",
+           xlim=(0, values.max() * 1.23))
+    ax.legend(handles=[
+        matplotlib.patches.Patch(color=COLORS[0], label="Seleccionado"),
+        matplotlib.patches.Patch(color="#a7b7c0", label="Fuera del subconjunto"),
+    ], loc="lower right")
+    save_chart(fig, out, "05_importancia_impureza.png")
+    return ranking, metrics
 
 
 def main():
@@ -246,7 +315,7 @@ def main():
     distribution = class_summary(df[TARGET], train[TARGET], test[TARGET], args.salida)
     samples = resample(train, numeric)
     comparison = compare_structure(samples, numeric, distribution.index, args.salida)
-    ranking, cramer = correlate_predictors(train, numeric, distribution.index, args.salida)
+    ranking, tree_metrics = select_predictors(train, test, args.salida)
     if args.guardar_muestras:
         private = args.salida / "muestras"
         private.mkdir(exist_ok=True)
@@ -259,8 +328,8 @@ def main():
     print(f"{len(df)} registros, {len(distribution)} clases, train={len(train)}, test={len(test)}")
     print(f"Mayor brecha train/test: {distribution['brecha_train_test_pp'].abs().max():.4f} pp")
     print(comparison.to_string(index=False))
-    print(ranking.head(10).to_string())
-    print(f"V de Cramér para {CATEGORY}: {cramer:.4f}")
+    print(tree_metrics.to_string(index=False))
+    print(ranking.loc[ranking["seleccionada"]].to_string())
 
 
 if __name__ == "__main__":
