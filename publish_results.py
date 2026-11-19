@@ -40,12 +40,20 @@ TABLES = {
         ("analisis_inflacion_global", "resumen_atipicos_por_indicador.csv"),
         ("analisis_inflacion_global", "reglas_calidad_sugeridas.csv"),
     ],
+    "Modelo EAC": [
+        ("modelo_EAC_clasificacion", "balance_clases.csv"),
+        ("modelo_EAC_clasificacion", "particion.csv"),
+        ("modelo_EAC_clasificacion", "metricas_prueba.csv"),
+        ("modelo_EAC_clasificacion", "metricas_por_clase.csv"),
+        ("modelo_EAC_clasificacion", "importancia_atributos.csv"),
+    ],
 }
 
 FIGURE_FILES = {
     "EAC": ["distribuciones_montos_log.png", "distribucion_personal.png", "frecuencia_idoj1.png"],
     "Inflación y meta": ["serie_inflacion_meta.png", "distribucion_inflacion.png", "comparacion_anual_meta.png"],
     "Inflación global": ["mediana_anual_por_indicador.png", "cobertura_paises_por_anio.png", "distribuciones_signed_log.png"],
+    "Modelo EAC": ["importancia_atributos.png"],
 }
 
 
@@ -66,11 +74,12 @@ def copy_public_figures():
             "EAC": "analisis_EAC_descriptivo",
             "Inflación y meta": "analisis_inflacion_meta",
             "Inflación global": "analisis_inflacion_global",
+            "Modelo EAC": "modelo_EAC_clasificacion",
         }[dataset]
         for filename in names:
             source = ROOT / "reports" / folder / filename
             if source.exists():
-                prefix = {"EAC": "eac", "Inflación y meta": "inflacion_meta", "Inflación global": "inflacion_global"}[dataset]
+                prefix = {"EAC": "eac", "Inflación y meta": "inflacion_meta", "Inflación global": "inflacion_global", "Modelo EAC": "modelo_eac"}[dataset]
                 shutil.copy2(source, FIGURES_DIR / f"{prefix}_{filename}")
 
 
@@ -93,11 +102,22 @@ def headline_stats():
     global_pct = 100 * global_missing / global_rows if global_rows else 0
     global_outliers = int(pd.read_csv(ROOT / "reports/analisis_inflacion_global/resumen_atipicos_por_indicador.csv")["eventos_atipicos"].sum())
 
-    return [
+    lines = [
         f"- **EAC 2024:** {eac_rows:,} registros; {eac_nmiss:,} faltantes reportados; {eac_iqr:,} eventos candidatos IQR agregados por variable.",
         f"- **Inflación y meta:** {meta_n:,} valores observados de inflación; meta faltante en {meta_missing_count:,} observaciones ({meta_missing_pct:.2f}%).",
         f"- **Inflación global:** {global_rows:,} observaciones anuales posibles entre grupos; {global_missing:,} valores faltantes ({global_pct:.2f}%); {global_outliers:,} candidatos IQR por serie temporal.",
     ]
+    model_path = ROOT / "reports/modelo_EAC_clasificacion/metricas_prueba.csv"
+    if model_path.exists():
+        model = pd.read_csv(model_path).iloc[0]
+        lines.append(
+            f"- **Clasificación EAC (`CORRE_9`):** {int(model['train']):,} empresas para entrenamiento y {int(model['test']):,} para prueba; balanced accuracy {model['balanced_accuracy']:.3f}, F1 macro {model['f1_macro']:.3f}."
+        )
+        importance_path = ROOT / "reports/modelo_EAC_clasificacion/importancia_atributos.csv"
+        if importance_path.exists():
+            best = pd.read_csv(importance_path).head(10)["atributo"].astype(str).tolist()
+            lines.append(f"  Predictores seleccionados: {', '.join(best)}.")
+    return lines
 
 
 def render_markdown(image_prefix="resultados/graficos", table_prefix="resultados/"):
@@ -114,6 +134,7 @@ def render_markdown(image_prefix="resultados/graficos", table_prefix="resultados
         "EAC": ["eac_distribuciones_montos_log.png", "eac_distribucion_personal.png", "eac_frecuencia_idoj1.png"],
         "Inflación y meta": ["inflacion_meta_serie_inflacion_meta.png", "inflacion_meta_distribucion_inflacion.png", "inflacion_meta_comparacion_anual_meta.png"],
         "Inflación global": ["inflacion_global_mediana_anual_por_indicador.png", "inflacion_global_cobertura_paises_por_anio.png", "inflacion_global_distribuciones_signed_log.png"],
+        "Modelo EAC": ["modelo_eac_importancia_atributos.png"],
     }
     for dataset, names in images.items():
         lines.extend(["", f"### {dataset}", ""])

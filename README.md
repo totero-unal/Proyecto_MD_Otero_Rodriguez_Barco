@@ -6,7 +6,7 @@ Este repositorio contiene scripts de preprocesamiento y análisis descriptivo pa
 
 <!-- AUTO-RESULTS-START -->
 
-_Última ejecución publicada (UTC): 2026-10-06 03:54_
+_Última ejecución publicada (UTC): 2026-10-06 03:37_
 
 Las cifras siguientes son resúmenes de la ejecución más reciente. Los candidatos IQR son señales para revisión, no errores confirmados.
 
@@ -64,6 +64,7 @@ python preprocess/banco_mundial.py
 python AD/analisis_descriptivo_eac.py
 python AD/analisis_descriptivo_inflacion_meta.py
 python AD/analisis_descriptivo_inflacion_global.py
+python AD/modelado_EAC_clasificacion.py
 python publish_results.py
 ```
 
@@ -73,6 +74,7 @@ Los reportes detallados se generan en `reports/`. El flujo automático solo publ
 
 - `preprocess/`: diagnósticos de calidad y conversión del libro del FMI a formato largo.
 - `AD/`: análisis descriptivo, tablas y gráficos.
+- `AD/modelado_EAC_clasificacion.py`: clasificación de actividad agregada CORRE_9, balance por pesos, partición estratificada y ranking de predictores.
 - `data/raw/`: bases fuente necesarias para ejecutar los scripts.
 - `data/processed/`: bases derivadas que se regeneran y no se versionan.
 - `reports/`: salidas detalladas locales de los scripts; no se publican automáticamente.
