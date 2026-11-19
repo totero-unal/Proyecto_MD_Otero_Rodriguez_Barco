@@ -1,12 +1,11 @@
-_Última ejecución publicada (UTC): 2026-11-19 13:46_
+_Última ejecución publicada (UTC): 2026-11-19 14:17_
 
 Las cifras siguientes son resúmenes de la ejecución más reciente. Los candidatos IQR son señales para revisión, no errores confirmados.
 
 - **EAC 2024:** 10,238 registros; 2 faltantes reportados; 73,196 eventos candidatos IQR agregados por variable.
 - **Inflación y meta:** 854 valores observados de inflación; meta faltante en 426 observaciones (49.88%).
 - **Inflación global:** 53,845 observaciones anuales posibles entre grupos; 12,838 valores faltantes (23.84%); 3,197 candidatos IQR por serie temporal.
-- **Clasificación EAC (`CORRE_9`):** 8,190 empresas para entrenamiento y 2,048 para prueba; balanced accuracy 0.452, F1 macro 0.428.
-  Predictores seleccionados: ENERGIA, EMPAQUE, IDAIO, CIMREP, TOTMUJ, INVPRO, IDOJ1, INVINI, ARRIENDO, PUBLICI.
+- **Preparación EAC (`CORRE_9`):** 9 clases, 8,190 registros en train y 2,048 en test. Se comparan tres técnicas de remuestreo y se reportan las correlaciones con el objetivo.
 
 Las tablas agregadas descargables están en las subcarpetas de `resultados/`. Los reportes de filas individuales se generan localmente durante el flujo y no se publican.
 
@@ -37,9 +36,17 @@ Las tablas agregadas descargables están en las subcarpetas de `resultados/`. Lo
 ![Inflación global: inflacion_global_distribuciones_signed_log.png](graficos/inflacion_global_distribuciones_signed_log.png)
 
 
-### Modelo EAC
+### Preparación EAC
 
-![Modelo EAC: modelo_eac_importancia_atributos.png](graficos/modelo_eac_importancia_atributos.png)
+![Preparación EAC: preparacion_eac_01_clases_originales.png](graficos/preparacion_eac_01_clases_originales.png)
+
+![Preparación EAC: preparacion_eac_02_particion_estratificada.png](graficos/preparacion_eac_02_particion_estratificada.png)
+
+![Preparación EAC: preparacion_eac_03_clases_por_tecnica.png](graficos/preparacion_eac_03_clases_por_tecnica.png)
+
+![Preparación EAC: preparacion_eac_04_cambio_estructura.png](graficos/preparacion_eac_04_cambio_estructura.png)
+
+![Preparación EAC: preparacion_eac_05_correlaciones.png](graficos/preparacion_eac_05_correlaciones.png)
 
 
 #### Tablas de resultados
@@ -47,4 +54,4 @@ Las tablas agregadas descargables están en las subcarpetas de `resultados/`. Lo
 - **EAC:** [eac/](eac/)
 - **Inflación y meta:** [inflacion_y_meta/](inflacion_y_meta/)
 - **Inflación global:** [inflacion_global/](inflacion_global/)
-- **Modelo EAC:** [modelo_eac/](modelo_eac/)
+- **Preparación EAC:** [preparacion_eac/](preparacion_eac/)

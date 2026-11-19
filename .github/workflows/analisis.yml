@@ -35,7 +35,8 @@ jobs:
           python AD/analisis_descriptivo_eac.py
           python AD/analisis_descriptivo_inflacion_meta.py
           python AD/analisis_descriptivo_inflacion_global.py
-          python AD/modelado_EAC_clasificacion.py
+      - name: Examinar clases, remuestreo y correlaciones de la EAC
+        run: python AD/preparacion_EAC.py
       - name: Preparar resultados agregados visibles en el repositorio
         run: python publish_results.py
       - name: Actualizar resultados publicados

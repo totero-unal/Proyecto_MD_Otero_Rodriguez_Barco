@@ -40,12 +40,13 @@ TABLES = {
         ("analisis_inflacion_global", "resumen_atipicos_por_indicador.csv"),
         ("analisis_inflacion_global", "reglas_calidad_sugeridas.csv"),
     ],
-    "Modelo EAC": [
-        ("modelo_EAC_clasificacion", "balance_clases.csv"),
-        ("modelo_EAC_clasificacion", "particion.csv"),
-        ("modelo_EAC_clasificacion", "metricas_prueba.csv"),
-        ("modelo_EAC_clasificacion", "metricas_por_clase.csv"),
-        ("modelo_EAC_clasificacion", "importancia_atributos.csv"),
+    "Preparación EAC": [
+        ("preparacion_EAC", filename)
+        for filename in [
+            "distribucion_clases.csv", "clases_por_tecnica.csv", "comparacion_estructura.csv",
+            "cambios_distribuciones.csv", "cambios_correlaciones.csv",
+            "ranking_correlaciones.csv", "spearman_por_clase.csv", "asociacion_idoj1.csv",
+        ]
     ],
 }
 
@@ -53,13 +54,29 @@ FIGURE_FILES = {
     "EAC": ["distribuciones_montos_log.png", "distribucion_personal.png", "frecuencia_idoj1.png"],
     "Inflación y meta": ["serie_inflacion_meta.png", "distribucion_inflacion.png", "comparacion_anual_meta.png"],
     "Inflación global": ["mediana_anual_por_indicador.png", "cobertura_paises_por_anio.png", "distribuciones_signed_log.png"],
-    "Modelo EAC": ["importancia_atributos.png"],
+    "Preparación EAC": [
+        "01_clases_originales.png", "02_particion_estratificada.png", "03_clases_por_tecnica.png",
+        "04_cambio_estructura.png", "05_correlaciones.png",
+    ],
 }
+
+FIGURE_SOURCES = {
+    "EAC": ("analisis_EAC_descriptivo", "eac"),
+    "Inflación y meta": ("analisis_inflacion_meta", "inflacion_meta"),
+    "Inflación global": ("analisis_inflacion_global", "inflacion_global"),
+    "Preparación EAC": ("preparacion_EAC", "preparacion_eac"),
+}
+
+
+def results_folder(dataset):
+    if dataset == "Preparación EAC":
+        return "preparacion_eac"
+    return dataset.lower().replace(" ", "_").replace("ó", "o")
 
 
 def copy_public_tables():
     for dataset, names in TABLES.items():
-        destination = RESULTS / dataset.lower().replace(" ", "_").replace("ó", "o")
+        destination = RESULTS / results_folder(dataset)
         destination.mkdir(parents=True, exist_ok=True)
         for folder, filename in names:
             source = ROOT / "reports" / folder / filename
@@ -70,16 +87,10 @@ def copy_public_tables():
 def copy_public_figures():
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)
     for dataset, names in FIGURE_FILES.items():
-        folder = {
-            "EAC": "analisis_EAC_descriptivo",
-            "Inflación y meta": "analisis_inflacion_meta",
-            "Inflación global": "analisis_inflacion_global",
-            "Modelo EAC": "modelo_EAC_clasificacion",
-        }[dataset]
+        folder, prefix = FIGURE_SOURCES[dataset]
         for filename in names:
             source = ROOT / "reports" / folder / filename
             if source.exists():
-                prefix = {"EAC": "eac", "Inflación y meta": "inflacion_meta", "Inflación global": "inflacion_global", "Modelo EAC": "modelo_eac"}[dataset]
                 shutil.copy2(source, FIGURES_DIR / f"{prefix}_{filename}")
 
 
@@ -107,16 +118,14 @@ def headline_stats():
         f"- **Inflación y meta:** {meta_n:,} valores observados de inflación; meta faltante en {meta_missing_count:,} observaciones ({meta_missing_pct:.2f}%).",
         f"- **Inflación global:** {global_rows:,} observaciones anuales posibles entre grupos; {global_missing:,} valores faltantes ({global_pct:.2f}%); {global_outliers:,} candidatos IQR por serie temporal.",
     ]
-    model_path = ROOT / "reports/modelo_EAC_clasificacion/metricas_prueba.csv"
-    if model_path.exists():
-        model = pd.read_csv(model_path).iloc[0]
+    classes_path = ROOT / "reports/preparacion_EAC/distribucion_clases.csv"
+    if classes_path.exists():
+        counts = pd.read_csv(classes_path)
         lines.append(
-            f"- **Clasificación EAC (`CORRE_9`):** {int(model['train']):,} empresas para entrenamiento y {int(model['test']):,} para prueba; balanced accuracy {model['balanced_accuracy']:.3f}, F1 macro {model['f1_macro']:.3f}."
+            f"- **Preparación EAC (`CORRE_9`):** {len(counts)} clases, "
+            f"{counts['train'].sum():,} registros en train y {counts['test'].sum():,} en test. "
+            "Se comparan tres técnicas de remuestreo y se reportan las correlaciones con el objetivo."
         )
-        importance_path = ROOT / "reports/modelo_EAC_clasificacion/importancia_atributos.csv"
-        if importance_path.exists():
-            best = pd.read_csv(importance_path).head(10)["atributo"].astype(str).tolist()
-            lines.append(f"  Predictores seleccionados: {', '.join(best)}.")
     return lines
 
 
@@ -134,7 +143,7 @@ def render_markdown(image_prefix="resultados/graficos", table_prefix="resultados
         "EAC": ["eac_distribuciones_montos_log.png", "eac_distribucion_personal.png", "eac_frecuencia_idoj1.png"],
         "Inflación y meta": ["inflacion_meta_serie_inflacion_meta.png", "inflacion_meta_distribucion_inflacion.png", "inflacion_meta_comparacion_anual_meta.png"],
         "Inflación global": ["inflacion_global_mediana_anual_por_indicador.png", "inflacion_global_cobertura_paises_por_anio.png", "inflacion_global_distribuciones_signed_log.png"],
-        "Modelo EAC": ["modelo_eac_importancia_atributos.png"],
+        "Preparación EAC": [f"preparacion_eac_{name}" for name in FIGURE_FILES["Preparación EAC"]],
     }
     for dataset, names in images.items():
         lines.extend(["", f"### {dataset}", ""])
@@ -143,7 +152,7 @@ def render_markdown(image_prefix="resultados/graficos", table_prefix="resultados
                 lines.extend([f"![{dataset}: {image_name}]({image_prefix}/{image_name})", ""])
     lines.extend(["", "#### Tablas de resultados", ""])
     for dataset in TABLES:
-        sub = dataset.lower().replace(" ", "_").replace("ó", "o")
+        sub = results_folder(dataset)
         lines.append(f"- **{dataset}:** [{sub}/]({table_prefix}{sub}/)")
     return "\n".join(lines).strip() + "\n"
 
