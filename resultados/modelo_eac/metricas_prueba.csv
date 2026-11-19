@@ -1,0 +1,2 @@
+﻿objetivo,predictores_seleccionados,train,test,accuracy,balanced_accuracy,f1_macro
+CORRE_9,10,8190,2048,0.4404296875,0.45158303721493315,0.4282782700031931
