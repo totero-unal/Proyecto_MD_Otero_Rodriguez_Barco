@@ -1,0 +1,24 @@
+artifact_path: file:C:/Users/ACER/Documents/Universidad/2026/2026-02/Mineria de Datos/Taller
+  3/Proyecto_MD_Otero_Rodriguez_Barco/mlruns/11/models/m-12fd4a6fd8694bfcb44aac3a1e10f593/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.14.4
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.9.1
+    skops_trusted_types: null
+mlflow_version: 3.18.0
+model_id: m-12fd4a6fd8694bfcb44aac3a1e10f593
+model_size_bytes: 35482
+model_uuid: m-12fd4a6fd8694bfcb44aac3a1e10f593
+prompts: null
+run_id: c50973a8a9eb439e8b54656844a0c264
+utc_time_created: '2026-11-23 01:13:50.027468'
