@@ -31,6 +31,7 @@ UNDER = "Submuestreo"
 OVER = "Sobremuestreo aleatorio"
 SMOTE = "SMOTENC"
 COLORS = ["#254c68", "#ad591b", "#217f75", "#74568c"]
+RUTA_SALIDA = Path("data/processed/EAC_2024_seleccionadas.csv")
 
 
 def save_chart(fig, out, filename):
@@ -288,8 +289,23 @@ def select_predictors(train, test, out):
     save_chart(fig, out, "05_importancia_impureza.png")
     return ranking, metrics
 
+def train_test():
+    variables = [
+    "CIMREP",
+    "ENERGIA",
+    "INVINI",
+    "EMPAQUE",
+    "ROTACION",
+    "PUBLICI",
+    "GASTOSNOP",
+    "INVPRO",
+    "TOTMUJ",
+    "CTOINS",
+    "FLETES",
+    "CTO",
+    "COMUNICA",
+]
 
-def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--entrada", type=Path, default=INPUT)
     parser.add_argument("--salida", type=Path, default=OUTPUT)
@@ -298,7 +314,39 @@ def main():
     args = parser.parse_args()
 
     df = pd.read_csv(args.entrada, sep=";", decimal=",", encoding="utf-8-sig", dtype={TARGET: str})
-    df[TARGET] = df[TARGET].str.strip()
+    df[TARGET] = df[TARGET].str.strip() 
+    df = df.drop(columns=["V1", "CORRELA_16"])
+    df[CATEGORY] = df[CATEGORY].astype("Int64").astype("string").fillna("Sin dato").astype(object)
+    numeric = [column for column in df if column not in {TARGET, CATEGORY}]
+    df[numeric] = df[numeric].apply(pd.to_numeric).astype(float)
+
+    train, test = train_test_split(df, test_size=.20, stratify=df[TARGET], random_state=SEED)
+    args.salida.mkdir(parents=True, exist_ok=True)
+    samples = resample(train, numeric)
+
+    samples_over = samples[OVER]
+
+    X_train = samples_over[variables]
+    Y_train = samples_over[TARGET]
+    
+    
+    X_test = test[variables]
+    Y_test = test[TARGET]
+
+
+
+    return X_train,Y_train,X_test,Y_test
+
+def main():
+    '''parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--entrada", type=Path, default=INPUT)
+    parser.add_argument("--salida", type=Path, default=OUTPUT)
+    parser.add_argument("--guardar-muestras", action="store_true",
+                        help="Guarda las filas de train, test y las tres muestras para uso local.")
+    args = parser.parse_args()
+
+    df = pd.read_csv(args.entrada, sep=";", decimal=",", encoding="utf-8-sig", dtype={TARGET: str})
+    df[TARGET] = df[TARGET].str.strip() 
     if df[TARGET].isna().any() or df[TARGET].eq("").any():
         raise ValueError("La base contiene registros sin clasificación CORRE_9.")
     if df["V1"].isna().any() or df["V1"].duplicated().any():
@@ -314,6 +362,11 @@ def main():
     args.salida.mkdir(parents=True, exist_ok=True)
     distribution = class_summary(df[TARGET], train[TARGET], test[TARGET], args.salida)
     samples = resample(train, numeric)
+
+    samples_over = samples[OVER]
+    samples_over.to_csv(RUTA_SALIDA, sep=";", decimal=",", index=False, encoding="utf-8-sig")
+
+
     comparison = compare_structure(samples, numeric, distribution.index, args.salida)
     ranking, tree_metrics = select_predictors(train, test, args.salida)
     if args.guardar_muestras:
@@ -329,8 +382,8 @@ def main():
     print(f"Mayor brecha train/test: {distribution['brecha_train_test_pp'].abs().max():.4f} pp")
     print(comparison.to_string(index=False))
     print(tree_metrics.to_string(index=False))
-    print(ranking.loc[ranking["seleccionada"]].to_string())
-
+    print(ranking.loc[ranking["seleccionada"]].to_string())'''
+    X_train,Y_train,X_test,Y_test = train_test()
 
 if __name__ == "__main__":
     main()
