@@ -6,14 +6,13 @@ Este repositorio contiene scripts de preprocesamiento y análisis descriptivo pa
 
 <!-- AUTO-RESULTS-START -->
 
-_Última ejecución publicada (UTC): 2026-11-19 14:37_
+_Última ejecución publicada (UTC): 2026-11-23 02:37_
 
 Las cifras siguientes son resúmenes de la ejecución más reciente. Los candidatos IQR son señales para revisión, no errores confirmados.
 
 - **EAC 2024:** 10,238 registros; 2 faltantes reportados; 73,196 eventos candidatos IQR agregados por variable.
 - **Inflación y meta:** 854 valores observados de inflación; meta faltante en 426 observaciones (49.88%).
 - **Inflación global:** 53,845 observaciones anuales posibles entre grupos; 12,838 valores faltantes (23.84%); 3,197 candidatos IQR por serie temporal.
-- **Preparación EAC (`CORRE_9`):** 9 clases, 8,190 registros en train y 2,048 en test. Se comparan tres técnicas de remuestreo y se seleccionan predictores por reducción de impureza en un árbol de decisión.
 
 Las tablas agregadas descargables están en las subcarpetas de `resultados/`. Los reportes de filas individuales se generan localmente durante el flujo y no se publican.
 
